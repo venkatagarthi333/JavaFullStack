@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Student Management</title>
+  <style>
+    body { font-family: Arial; margin: 20px; }
+    table, th, td { border: 1px solid black; border-collapse: collapse; padding: 8px; }
+    th { background-color: #f2f2f2; }
+    input { margin-right: 10px; }
+  </style>
+</head>
+<body bgcolor="grey">
+
+  <h2>Student Management</h2>
+
+  <h3>Add Student</h3>
+  <form id="studentForm">
+    <input type="text" id="name" placeholder="Name" required />
+    <input type="email" id="email" placeholder="Email" required />
+    <input type="text" id="course" placeholder="Course" required />
+    <button type="submit">Add</button>
+  </form>
+
+  <h3>Student List</h3>
+  <table id="studentTable">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Course</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const apiUrl = 'http://localhost:8080/students';
+
+    // Fetch and display students
+    async function loadStudents() {
+      try {
+        const res = await fetch(apiUrl);
+        const students = await res.json();
+
+        const table = document.querySelector("#studentTable tbody");
+        table.innerHTML = '';
+        students.forEach(student => {
+          const row = `<tr>
+            <td>${student.id}</td>
+            <td>${student.name}</td>
+            <td>${student.email}</td>
+            <td>${student.course}</td>
+            <td><button onclick="deleteStudent(${student.id})">Delete</button></td>
+          </tr>`;
+          table.innerHTML += row;
+        });
+      } catch (error) {
+        console.error("Error loading students:", error);
+      }
+    }
+
+    // Add student
+    document.getElementById("studentForm").addEventListener("submit", async function(e) {
+      e.preventDefault();
+      const name = document.getElementById("name").value;
+      const email = document.getElementById("email").value;
+      const course = document.getElementById("course").value;
+
+      try {
+        await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, course })
+        });
+
+        this.reset();
+        loadStudents();
+      } catch (error) {
+        console.error("Error adding student:", error);
+      }
+    });
+
+    // Delete student
+    async function deleteStudent(id) {
+      try {
+        await fetch(`${apiUrl}/${id}`, { method: 'DELETE' });
+        loadStudents();
+      } catch (error) {
+        console.error("Error deleting student:", error);
+      }
+    }
+
+    // Initial load
+    loadStudents();
+  </script>
+
+</body>
+</html>
